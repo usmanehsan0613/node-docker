@@ -1,0 +1,239 @@
+npm init -y
+npm install --save express
+
+Setup a docker container
+ - Install docker, sign up and download dockdr at hub.docker.com
+ - Create our own custom image with our own source code
+
+workdir /app  is the dir of container, all code will be inside this directory on container image.
+COPY - to copy all the files such as packages from the file / directory to ., /app directory in the container  
+again copy " . "  means copy everything to /app 
+abvoe commands are layers of images
+
+Build the whole project , as docker container (Make sure docker engine is running)
+ - docker build .
+ - docker build -t node-app-image .
+ - docker image ls
+
+Delete the image 
+ - docker image rm  IMAGE ID (5aad20b22997)
+
+Run docker image 
+ - docker run -d --name node-app node-app-image  
+ - docker ps
+
+Making outside world to connect to container
+ from port 3000 => port 3000 inside container
+ docker rm node-app -f (delet the container)
+ docker run -p 3000:3000 -d --name node-app node-app-image
+               (coming iN, HOST) : ( Sending to container )
+
+Login Into the container itself to view the stuff
+ - docker exec -it node-app bash 
+    (it will land to #app directory we defined before in our docker file, 
+    use windows Linux System WLS, all linux commands will work 
+    )             
+
+Dont copy node_modules folder to container as its waste of resources
+.dockerignore file will handle this
+
+How the build and run docker will work if we make any change ?
+- delete the container 
+- re-build image
+- run container
+
+Volumes in Container 
+  Used to sync data from local and contianer , so we dont have to rebuild the container everytime we 
+  make a change to source code
+  
+  -v pathtofolder on local machine  : path to folder on container
+  -v C:\xampp\htdocs\node-docker\:/app
+  -v %cd%:/app
+  --mount source="%cd%",target=/app
+
+docker run -v "C:\xampp\htdocs\node-docker"\:/app -p 3000:3000 -d --name node-app node-app-image
+
+If we delete the node_modules folder from localh env , than it will delete from container as well
+so we will create another volume to preserve the node_modules folder
+-v /app/node_modules
+
+docker run -v "C:\xampp\htdocs\node-docker"\:/app -v /app/node_modules -p 3000:3000 -d --name node-app node-app-image
+
+everytime we make a change , we have to restart the node process. install nodemon
+and update the Dockerfile 
+
+Two way volumns :
+ if we create file in local it will crate over there and hence back forth.
+ Just make it read only 
+ add ro flag at the end of volumne
+docker run -v "C:\xampp\htdocs\node-docker"\:/app:ro -v /app/node_modules -p 3000:3000 -d --name node-app node-app-image
+
+Dynamic values to DockerFUle
+
+docker run -v "C:\xampp\htdocs\node-docker"\:/app:ro -v /app/node_modules --env PORT=3000 -p 3000:3000 -d --name node-app node-app-image
+
+printenv for checking environment vars in linux machine. 
+
+10,20 vars as env - create a file for env files i.e .env
+
+docker run -v "C:\xampp\htdocs\node-docker"\:/app:ro -v /app/node_modules --env-file ./.env -p 3000:3000 -d --name node-app node-app-image
+
+docker volumn ls (we have several volumns here. each time we run command a new vol was created)
+its preserving the volumns 
+
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     81a924dcdcd50c9b1aa1a2ab80d97f931cf62ff6bdc10a86b68789bd5eb36496
+local     aa4feaa7af967302745daf71c9de141ffa1be7b13f981e67990c45e590ae05f1
+local     ccd9a3f3f9d3fc4c78cd2e363ec3f9d715f0982a662a4a34646ac7b7bea32ebd
+local     d33f7385f0ee363859b166560504c8af6915ba0db5d641ad4ff942c8c454a00f
+local     d921bb0359474596b968157527ce59dd8da48bb9f12140e0297caca4c073cd4f
+
+docker volume prune
+
+docker rm node-app -fv (Deletes container and volume as well)
+
+Automate all above steps or configuerations 
+ Docker-compose file (Each container is a service **)
+
+docker-compose up -d(Brings up everything i config of .yml) 
+docker-compose down -v (delete the volumns as well)
+  Need to explicity tell docker that there is an update about the image , 
+  cause docker compose to force the built
+
+docker-compose up -d --build  
+
+Going with production 
+ Docker compose for production and development 
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v
+
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+acutally -f flag will supersede and override the compose files as it goes on. 
+
+DockerFile if condition 
+ run npm install if in dev node_modules
+ run npm install --only=productio , if in prod node, 
+ Need to put if else statement in DockerFile and set argument sin their respetive docker-compose file 
+Categorically specifying the build process as below 
+
+  build: 
+      context: . 
+      args: 
+        NODE_ENV:development
+
+Setting up more containers in one app 
+- Adding mongoDB container 
+- Gofor official image of mongo DB 
+- Add under services under services tab under docker compose , 
+ * Remember each container is a service itself , thus dockerized apps are also the way to containerized 
+ applications. 
+ After setting up the mongo vars in docker compose , just do docker compose up with de or prod , it 
+ will create anther instance such as mongo
+
+- MyDockerizeddApp- Network 
+
+ services
+  - [NodeContainer]           - [MongoContianer]
+    Using build because       NO build , as its an image 
+    its custom code           from the library
+
+Once container Mongo is down , and re-up again. our own dbs created are gone. because its not retaining 
+the data.
+
+we will hve to use volumns to persist data , below is named volumne
+  volumes:
+      - mongo-db:/data/db  
+down -v will also delete the named volumns 
+
+Starup containers, and than do 
+docker volume --help 
+use prune command , will delete all other vols that are not being used . thats why we ran above
+docker volumn prune (will delete all unsused vols )
+
+Setup express application with mongo DB 
+ - npm isstal mongose
+
+How to connect to DB , via containers 
+
+await mongoose.connect('mongodb://usman:usmanpass@');
+
+we will need IP addrss 
+
+
+docker ps, 
+docker inspect docker_node-mongo (name of container)
+we will pull IP address from this information , NetworkID
+But its sloppy way to do thsi, IP may change at next up and down 
+
+so will find it other wya 
+$ docker network ls
+NETWORK ID     NAME      DRIVER    SCOPE
+c1d64a769b4f   bridge    bridge    local
+014a7001c055   host      host      local
+9d4e993448d7   none      null      local
+
+name of containers (DNS) can talk to other continaers within our network . 
+
+ docker logs node-docker-node-app-1 (to check the logs)
+                
+only start specific services 
+
+ docker-compose --------------- service name 
+ -d node-app
+
+ MAKING A CRUD APPLICATION , - BLOG APP IN NODE, JS AND MONGO 
+
+  index.js => router (just like CI php based router) => based on path such as /api/v1/ will call respective 
+  routes.js
+
+  routes.js => will call respective contorllers that will send back data based on  GET, PUT , POST , Delete
+
+  REDIS container : 
+
+   first make a user sign up an sign in 
+   Keep user state in session , using expess library expess-session , howevver we may also use
+   jwt library as per MERN boilerplate. ShamaHaque.
+   alos using connect-redis 
+
+   GET Redis DB , goto docker hub and get redis image 
+   npm install redis connect-redis express-session
+
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build -V (anonymous volumns)
+
+   redis stores all the session sensitive information in its DB , and is not public. 
+    req.session.user = user; will save user object in RedisSession storage.
+
+    MOVING TO PRODUCTION 
+     screeshot prod.jpg
+     spin up another node container, JUst Scale up the nodeApp
+     Add load balancer, NGINX as proxy ..
+     https://expressjs.com/en/guide/behind-proxies.html
+   
+   SCALE UP OUR APPLICATO - ADD ANOTHER NODE instance     
+   put all contianers down
+   up all --scale node-app=2
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --scale node-app=2
+
+cheking if nginx is really load balancing our nodes. 
+
+docker ps
+ widnow 1 : docker logs node-docker-node-app-1
+ widnow 2 : docker logs node-docker-node-app-2
+
+ Deploy this app on DigitalOcean , Let see....
+  - will use the git as well 
+  - ubuntu server / AWS / Azure or virtual box .
+ Create a virtual machine, (Droplet on Digital Ocean)
+ Install docker on VM on droplet. PUblic IP address
+ open terminal ssh root@IPaddress, 
+ Install Docker on Ubunt (get.docker.com) Download sh script and run one command. 
+ docker --version 
+ docker-compose -V
+ Store our app on git 
+ 
+
+

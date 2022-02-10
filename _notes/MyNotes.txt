@@ -234,6 +234,11 @@ docker ps
  docker --version 
  docker-compose -V
  Store our app on git 
+ configure env vars on ubuntu machine, 
+ docker-prod (MONGO_USER=${MONGO_USER}) and it will pull vars from ubuntu machine.
+ export MONGO_USER="usman"
+ printenv
+ vi .env (store all env vars, gra=b from dev file and copy exact same syntax)
  
 
 

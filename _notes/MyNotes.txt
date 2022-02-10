@@ -280,6 +280,67 @@ docker ps
  Now if we do docker pull , it will know from where to pull image from . 
  Both build and pull image together. 
 
+ Build all the services
+ docker-compose -f ........   build 
+ (Only build image for all the services, rther unning the container itself. )
+ docker image ls
 
+ Here push to dockerhub. 
+docker-compose -f ........   push node-app
+docker-compose -f ........   pull node-app 
+
+1)Build image using docker-cmpose
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml build node-app
+
+2) Push brand new image to dockerhub
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml push node-app
+
+3)Goto production server, pull that brand new image
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull node-app
+
+4) Just up that image
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml -d --no-deps up node-app
+
+Automate above steps, using one of docker utility. Prod automatically detect the upated new image. 
+whenever there is a change it will fetch. 
+ - WATCHTOWER , i m not intersted init. 
+
+
+DOCKERHUB - ORCHESTRATION 
+ apps will go down meanwhile , we are tearing down container, pull new one and rebuild ... it will 
+ provide latency n aps. 
+
+ there is no way to implement the roll out procedure in docker.
+
+ Built in contianer ochestrator - Docker swarm = Kubernates
+
+ sc-dockerSwarm.jpg
+
+ ** Docker is only to distribute contianers to one server, if we need to distribute to many contianers
+ we are gonna use Docker Swarm is orchestrator.
+ 5-10 server, we can handle all .. 
+ such sa with docker swarm , if we have pushed on contianer, thatn docker swarm will handle and upate 
+ on all the 5-0 servers. 
+
+* Docker is not for productxon ready tool
+Docker swarm for multiple servers. 
+-------------------------------------------------
+Node (server)     Node (server)   Node (server) 
+--------------------------------------------------
+Node (server)     Node (server)   Node (server)
+-------------------------------------------------- 
+
+Setting docker swarm on prodctions 
+  docker swarm init
+  docker swarm init --advertise-addr IP
+ Add more nodes into swarm
+  docker service --help
+Docker-> contianers, Swarm -> services
+
+Add to compose file 
+ REPLICA , how many containers to add . 
+ Diff bw replica and scale ?
+  Check for swarm docker hub , UPDATE_CONFIG updates without delays, that fix our problems
+ for 8  , if 2 are down, 6 will do the job 
 
 

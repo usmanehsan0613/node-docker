@@ -59,7 +59,7 @@ app.use(express.json());
 
 app.get("/api/", (req,res) => {
     // res.send("**<h2>Hi there - version 1 - 1 ****</h2>");
-    res.send("<h2>Hello world * * * * ||| *** || *** </h2>");
+    res.send("<h2>Hello world * * * * ||| *** || *** For prod</h2>");
     console.log("Yeah it ran !!");
 });
 

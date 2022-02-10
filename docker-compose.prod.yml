@@ -5,6 +5,11 @@ services:
     - "80:80"
 
   node-app:
+    #for docker swarm
+    #deploy:
+    #  replicas: 8
+    # 
+    
     build: 
       context: . 
       args: 

@@ -239,6 +239,47 @@ docker ps
  export MONGO_USER="usman"
  printenv
  vi .env (store all env vars, gra=b from dev file and copy exact same syntax)
- 
+ git clone http: and copy whole project on production 
+ Run command - 
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d 
+
+  Pushing the changes on production server.  sc-git.jpg
+  Steps:
+   - git add --all
+     git commit
+     git push 
+
+     git clone / git pull (on server)
+  * Again pull these changes, it will update the files. 
+  Rebuilt the image, down , up , service will be down . 
+
+  (Only build node-app container)
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build node-app
+  Rebuiliting the mongodb still , because in .yml we had entioned that it depends on mongo ,  --no-deps
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --no-deps node-app
+
+ Issue of building image right on production server :( 
+   Solution is to build image on devServer, Use of DockerHUB
+   dockerhub - Repository of images. sc-docker.jpg
+
+ create an accont on dockerhub (usmnehsan0613@, Bawal@321) - Create a repository
+ Push image ot dockerhub
+ docker push --help
+ docker image ls
+ docker login
+ Change the imagename 
+  usmanehsan0613/
+  docker image tag node-docker_node-app usmanehsan0613/node-app
+
+ docker push usmanehsan0613/node-app
+
+ Tell docker compose to pull image from dockerhub 
+ docker-compose.yml Under Node service
+ image: usmanehsan0613/node-app
+
+ Now if we do docker pull , it will know from where to pull image from . 
+ Both build and pull image together. 
+
+
 
 
